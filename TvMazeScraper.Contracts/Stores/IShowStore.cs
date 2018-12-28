@@ -8,7 +8,7 @@ namespace TvMazeScraper.Contracts.Stores
     {
         Task SetAsync(IShow show);
         Task<IShow> GetAsync(int id);
-        Task<List<IShow>> GetAsync(int offset, int count);
+        Task<IEnumerable<IShow>> GetAsync(int offset, int count);
         Task RemoveNotMatchedAsync(IEnumerable<int> ids);
     }
 }

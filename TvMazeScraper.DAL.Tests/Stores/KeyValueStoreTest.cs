@@ -22,7 +22,8 @@ namespace TvMazeScraper.DAL.Tests.Stores
             dbFactory.Setup(t => t.GetDatabase()).Returns(() => _db.Object);
 
             _serializer = new Mock<ISerializer>();
-            _serializer.Setup(t => t.Serialize(It.IsAny<object>())).Returns<object>(JsonConvert.SerializeObject);
+            _serializer.Setup(t => t.Serialize(It.IsAny<int>())).Returns<int>(obj => JsonConvert.SerializeObject(obj));
+            _serializer.Setup(t => t.Deserialize<int>(It.IsAny<string>())).Returns<string>(JsonConvert.DeserializeObject<int>);
 
             _sut = new KeyValueStore(dbFactory.Object, _serializer.Object);
         }

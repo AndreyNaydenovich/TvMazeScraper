@@ -26,12 +26,12 @@ namespace TvMazeScraper.Presentation.Controllers
         {
             var rawShowlist = await _showStore.GetAsync(offset, limit);
 
-            if (rawShowlist.Count == 0)
+            var showList = _mapper.Map<List<Show>>(rawShowlist);
+
+            if (showList.Count == 0)
             {
                 return new NotFoundResult();
             }
-
-            var showList = _mapper.Map<List<Show>>(rawShowlist);
 
             return showList;
         }

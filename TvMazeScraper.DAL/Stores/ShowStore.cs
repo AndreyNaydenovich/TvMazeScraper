@@ -38,7 +38,7 @@ namespace TvMazeScraper.DAL.Stores
             return null;
         }
 
-        public async Task<List<IShow>> GetAsync(int offset, int count)
+        public async Task<IEnumerable<IShow>> GetAsync(int offset, int count)
         {
             if (count < 1)
             {

@@ -29,7 +29,7 @@ namespace TvMazeScraper.Presentation.Domain.Services
             return show;
         }
 
-        public async Task<List<IShow>> GetAsync(int offset, int count)
+        public async Task<IEnumerable<IShow>> GetAsync(int offset, int count)
         {
             var showList = await _showStore.GetAsync(offset, count);
 
