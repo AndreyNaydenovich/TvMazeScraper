@@ -1,12 +1,13 @@
-﻿using StackExchange.Redis;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TvMazeScraper.Contracts;
+using StackExchange.Redis;
 using TvMazeScraper.Contracts.Entities;
+using TvMazeScraper.Contracts.Stores;
 using TvMazeScraper.DAL.Entities;
+using TvMazeScraper.DAL.Helpers;
 
-namespace TvMazeScraper.DAL
+namespace TvMazeScraper.DAL.Stores
 {
     public class ShowStore : IShowStore
     {
@@ -30,7 +31,9 @@ namespace TvMazeScraper.DAL
             var redisValue = await _db.HashGetAsync(ShowList, id).ConfigureAwait(false);
 
             if (redisValue.HasValue)
+            {
                 return _serializer.Deserialize<Show>(redisValue);
+            }
 
             return null;
         }

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace TvMazeScraper.Contracts
+namespace TvMazeScraper.Contracts.Stores
 {
     public interface IKeyValueStore
     {

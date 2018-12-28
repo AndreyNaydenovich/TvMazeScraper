@@ -4,7 +4,7 @@ namespace TvMazeScraper.DAL.Helpers
 {
     public class Serializer : ISerializer
     {
-        private JsonSerializerSettings _settings;
+        private readonly JsonSerializerSettings _settings;
 
         public Serializer()
         {

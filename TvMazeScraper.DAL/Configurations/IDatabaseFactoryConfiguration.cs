@@ -1,4 +1,4 @@
-﻿namespace TvMazeScraper.DAL
+﻿namespace TvMazeScraper.DAL.Configurations
 {
     public interface IDatabaseFactoryConfiguration
     {

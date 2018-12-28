@@ -2,14 +2,13 @@
 
 namespace TvMazeScraper.Integration.Domain.Entities
 {
-    public class ShowSynchronizationStatus
+    public class SynchronizationServiceState
     {
-        public int Date { get; set; }
-        public int Timestamp { get => Date; set => Date = value; }
+        public int Timestamp { get; set; }
 
         public List<int> ShowIds { get; set; }
 
-        public ShowSynchronizationStatus()
+        public SynchronizationServiceState()
         {
             ShowIds = new List<int>();
         }

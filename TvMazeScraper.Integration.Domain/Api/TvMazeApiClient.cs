@@ -1,29 +1,31 @@
-﻿using AutoMapper;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using TvMazeScraper.Contracts.Entities;
+using TvMazeScraper.Integration.Domain.Configurations;
 using TvMazeScraper.Integration.Domain.Entities;
 using TvMazeScraper.Integration.Domain.Extensions;
 
-namespace TvMazeScraper.Integration.Domain
+namespace TvMazeScraper.Integration.Domain.Api
 {
-    public class TvMazeApiClient : IDisposable, ITvMazeApiClient
+    public class TvMazeApiClient : ITvMazeApiClient
     {
         private readonly IMapper _mapper;
         private readonly HttpClient _client;
+        private readonly IApiClientConfiguration _config;
 
-        public TvMazeApiClient(IMapper mapper)
+        public TvMazeApiClient(HttpClient client, IMapper mapper, IApiClientConfiguration config)
         {
+            _client = client;
             _mapper = mapper;
-            _client = new HttpClient();
+            _config = config;
         }
 
-        public async Task<(bool IsRateLimitExceed, Dictionary<int, int> data)> GetUpdateListAsync(CancellationToken cancellationToken)
+        public async Task<(bool IsRateLimitExceed, Dictionary<int, int> Data)> GetUpdateListAsync(CancellationToken cancellationToken)
         {
-            var response = await _client.GetAsync(@"http://api.tvmaze.com/updates/shows", cancellationToken).ConfigureAwait(false);
+            var response = await _client.GetAsync(_config.UpdateEndpoint, cancellationToken).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
@@ -40,9 +42,9 @@ namespace TvMazeScraper.Integration.Domain
             return (false, null);
         }
 
-        public async Task<(bool IsRateLimitExceed, IShow data)> GetShowInfoAsync(int id, CancellationToken cancellationToken)
+        public async Task<(bool IsRateLimitExceed, IShow Data)> GetShowInfoAsync(int id, CancellationToken cancellationToken)
         {
-            var response = await _client.GetAsync($@"http://api.tvmaze.com/shows/{id}?embed=cast", cancellationToken).ConfigureAwait(false);
+            var response = await _client.GetAsync(string.Format(_config.ShowEndpoint, id), cancellationToken).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
@@ -57,11 +59,6 @@ namespace TvMazeScraper.Integration.Domain
 
             response.EnsureSuccessStatusCode();
             return (false, null);
-        }
-
-        public void Dispose()
-        {
-            _client.Dispose();
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using StackExchange.Redis;
-using System.Threading.Tasks;
-using TvMazeScraper.Contracts;
+﻿using System.Threading.Tasks;
+using StackExchange.Redis;
+using TvMazeScraper.Contracts.Stores;
+using TvMazeScraper.DAL.Helpers;
 
-namespace TvMazeScraper.DAL
+namespace TvMazeScraper.DAL.Stores
 {
     public class KeyValueStore : IKeyValueStore
     {

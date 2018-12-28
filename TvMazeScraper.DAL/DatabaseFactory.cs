@@ -1,10 +1,11 @@
 ﻿using StackExchange.Redis;
+using TvMazeScraper.DAL.Configurations;
 
 namespace TvMazeScraper.DAL
 {
     public class DatabaseFactory : IDatabaseFactory
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
 
         public DatabaseFactory(IDatabaseFactoryConfiguration config)
         {

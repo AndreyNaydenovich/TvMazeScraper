@@ -1,7 +1,7 @@
 ﻿namespace TvMazeScraper.Presentation.Configurations
 {
-    public class ResponseCacheConfiguration
+    public class ResponseCacheConfiguration : IResponseCacheConfiguration
     {
-        public int MaxAgeInSeconds;
+        public int MaxAgeInSeconds { get; set; }
     }
 }

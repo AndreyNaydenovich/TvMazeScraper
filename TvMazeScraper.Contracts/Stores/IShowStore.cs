@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using TvMazeScraper.Contracts.Entities;
 
-namespace TvMazeScraper.Contracts
+namespace TvMazeScraper.Contracts.Stores
 {
     public interface IShowStore
     {

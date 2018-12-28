@@ -1,22 +1,22 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TvMazeScraper.Contracts;
+using Microsoft.Extensions.Logging;
+using TvMazeScraper.Contracts.Stores;
+using TvMazeScraper.Integration.Domain.Api;
 using TvMazeScraper.Integration.Domain.Entities;
 
 namespace TvMazeScraper.Integration.Domain
 {
-    public class ShowSynchronization : IDisposable
+    public class SynchronizationService : ISynchronizationService
     {
         private readonly IKeyValueStore _keyValueStore;
         private readonly IShowStore _showStore;
         private readonly IFailoverTvMazeApiClient _apiClient;
-        private readonly ILogger<ShowSynchronization> _logger;
+        private readonly ILogger<SynchronizationService> _logger;
 
-        public ShowSynchronization(IKeyValueStore keyValueStore, IShowStore showStore, IFailoverTvMazeApiClient apiClient, ILogger<ShowSynchronization> logger)
+        public SynchronizationService(IKeyValueStore keyValueStore, IShowStore showStore, IFailoverTvMazeApiClient apiClient, ILogger<SynchronizationService> logger)
         {
             _keyValueStore = keyValueStore;
             _showStore = showStore;
@@ -33,21 +33,16 @@ namespace TvMazeScraper.Integration.Domain
 
         public async Task UpdateShowsAsync(Dictionary<int, int> updateList, CancellationToken cancellationToken)
         {
-            var statusKey = "JobStatus";
+            var stateKey = "SynchronizationServiceState";
 
-            var lastStatus = await _keyValueStore.GetAsync<ShowSynchronizationStatus>(statusKey) ?? new ShowSynchronizationStatus();
+            var lastState = await _keyValueStore.GetAsync<SynchronizationServiceState>(stateKey) ?? new SynchronizationServiceState();
 
-            var currentStatus = new ShowSynchronizationStatus();
+            var currentState = new SynchronizationServiceState();
 
             foreach (var showToUpdate in updateList.OrderBy(t => t.Value))
             {
-                if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                if (showToUpdate.Value < lastStatus.Date ||
-                    showToUpdate.Value == lastStatus.Date && lastStatus.ShowIds.Contains(showToUpdate.Key))
+                if (showToUpdate.Value < lastState.Timestamp ||
+                    showToUpdate.Value == lastState.Timestamp && lastState.ShowIds.Contains(showToUpdate.Key))
                 {
                     continue;
                 }
@@ -55,25 +50,20 @@ namespace TvMazeScraper.Integration.Domain
                 var show = await _apiClient.GetShowInfoAsync(showToUpdate.Key, cancellationToken);
                 await _showStore.SetAsync(show);
 
-                if (currentStatus.Date == showToUpdate.Value)
+                if (currentState.Timestamp == showToUpdate.Value)
                 {
-                    currentStatus.ShowIds.Add(showToUpdate.Key);
+                    currentState.ShowIds.Add(showToUpdate.Key);
                 }
                 else
                 {
-                    currentStatus.Date = showToUpdate.Value;
-                    currentStatus.ShowIds.Clear();
-                    currentStatus.ShowIds.Add(showToUpdate.Key);
+                    currentState.Timestamp = showToUpdate.Value;
+                    currentState.ShowIds.Clear();
+                    currentState.ShowIds.Add(showToUpdate.Key);
                 }
 
-                await _keyValueStore.SetAsync(statusKey, currentStatus);
+                await _keyValueStore.SetAsync(stateKey, currentState);
                 _logger.LogInformation($@"Show #{show.Id} is updated.");
             }
-        }
-
-        public void Dispose()
-        {
-            _apiClient.Dispose();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace TvMazeScraper.DAL
+﻿namespace TvMazeScraper.DAL.Helpers
 {
     public interface ISerializer
     {

@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using TvMazeScraper.Contracts.Entities;
 
-namespace TvMazeScraper.Presentation.Domain
+namespace TvMazeScraper.Presentation.Domain.Services
 {
-    public interface ISortedShowStore
+    public interface IShowService
     {
         Task<IShow> GetAsync(int id);
         Task<List<IShow>> GetAsync(int offset, int count);

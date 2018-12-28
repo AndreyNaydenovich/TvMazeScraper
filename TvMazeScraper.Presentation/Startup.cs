@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
-using TvMazeScraper.Integration.Domain.Configurations;
+using TvMazeScraper.Contracts.Stores;
 using TvMazeScraper.Presentation.Configurations;
+using TvMazeScraper.Presentation.Domain.Comparers;
 using TvMazeScraper.Presentation.Extensions;
+using TvMazeScraper.Presentation.Middleware;
 
 namespace TvMazeScraper.Presentation
 {
@@ -21,8 +23,9 @@ namespace TvMazeScraper.Presentation
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<ResponseCacheConfiguration>(Configuration.GetSection("ResponseCache").Get<ResponseCacheConfiguration>());
-            services.AddSingleton<DAL.IDatabaseFactoryConfiguration>(Configuration.GetSection("DatabaseFactoryConfiguration").Get<DatabaseFactoryConfiguration>());
+            services.AddSingleton<IResponseCacheConfiguration>(Configuration.GetSection("ResponseCache").Get<ResponseCacheConfiguration>());
+            services.AddSingleton<DAL.Configurations.IDatabaseFactoryConfiguration>(Configuration.GetSection("DatabaseFactoryConfiguration")
+                .Get<DAL.Configurations.DatabaseFactoryConfiguration>());
 
             services.AddLogging();
             services.AddApplicationInsightsTelemetry();
@@ -30,11 +33,11 @@ namespace TvMazeScraper.Presentation
             services.AddAutoMapper();
 
             services.AddSingleton<DAL.IDatabaseFactory, DAL.DatabaseFactory>();
-            services.AddSingleton<DAL.ISerializer, DAL.Helpers.Serializer>();
-            services.AddTransient<Contracts.IKeyValueStore, DAL.KeyValueStore>();
-            services.AddTransient<Contracts.IShowStore, DAL.ShowStore>();
-            services.AddTransient<Domain.ISortedShowStore, Domain.SortedShowStore>();
-            services.AddSingleton<IComparer<Contracts.Entities.ICast>, Domain.CastComparer>();
+            services.AddSingleton<DAL.Helpers.ISerializer, DAL.Helpers.Serializer>();
+            services.AddTransient<IKeyValueStore, DAL.Stores.KeyValueStore>();
+            services.AddTransient<IShowStore, DAL.Stores.ShowStore>();
+            services.AddSingleton<IComparer<Contracts.Entities.ICast>, CastComparer>();
+            services.AddTransient<Domain.Services.IShowService, Domain.Services.ShowService>();
 
             services.AddResponseCaching();
             services.AddResponseCompression();
@@ -48,18 +51,17 @@ namespace TvMazeScraper.Presentation
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseMiddleware<ErrorHandlingMiddleware>();
+            }
 
             app.UseResponseCaching();
-            //app.UseResponseCacheConfigurationMiddleware();
+            app.UseMiddleware<ApiResponseCachingMiddleware>();
             app.UseResponseCompression();
 
             app.UseSwagger();
             app.UseSwaggerUi3();
-            //app.UseSwaggerUi3(settings =>
-            //{
-            //    settings.GeneratorSettings.DefaultPropertyNameHandling =
-            //        PropertyNameHandling.CamelCase;
-            //});
 
             app.UseMvc();
         }

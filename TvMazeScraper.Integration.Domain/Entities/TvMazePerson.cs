@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using Newtonsoft.Json;
+using TvMazeScraper.Integration.Domain.Helpers;
 
 namespace TvMazeScraper.Integration.Domain.Entities
 {
@@ -12,7 +13,7 @@ namespace TvMazeScraper.Integration.Domain.Entities
         public string Name { get; set; }
 
         [JsonProperty("birthday")]
-        [JsonConverter(typeof(FailSafeDateConverter))]
+        [JsonConverter(typeof(FailsafeDateConverter))]
         public DateTime? Birthday { get; set; }
     }
 }

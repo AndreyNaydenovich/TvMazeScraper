@@ -1,27 +1,27 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using TvMazeScraper.Presentation.Domain;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using TvMazeScraper.Presentation.Domain.Services;
 using TvMazeScraper.Presentation.Entities;
 
 namespace TvMazeScraper.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/v1/shows")]
+    [Route("api/v1")]
     [Produces("application/json")]
     public class ShowController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly ISortedShowStore _showStore;
+        private readonly IShowService _showStore;
 
-        public ShowController(IMapper mapper, ISortedShowStore showStore)
+        public ShowController(IMapper mapper, IShowService showStore)
         {
             _mapper = mapper;
             _showStore = showStore;
         }
 
-        [HttpGet()]
+        [HttpGet("shows")]
         public async Task<ActionResult<IEnumerable<Show>>> GetAsync(int offset, int limit)
         {
             var rawShowlist = await _showStore.GetAsync(offset, limit);
@@ -36,18 +36,19 @@ namespace TvMazeScraper.Presentation.Controllers
             return showList;
         }
 
-        //[HttpGet("show/{id}")]
-        //public async Task<ActionResult<Show>> GetAsync(int id)
-        //{
-        //    var rawShow = await _showStore.GetAsync(id);
-        //    if (rawShow == null)
-        //    {
-        //        return new NotFoundResult();
-        //    }
+        [HttpGet("show/{id}")]
+        public async Task<ActionResult<Show>> GetAsync(int id)
+        {
+            var rawShow = await _showStore.GetAsync(id);
 
-        //    var show = _mapper.Map<Show>(rawShow);
+            if (rawShow == null)
+            {
+                return new NotFoundResult();
+            }
 
-        //    return show;
-        //}
+            var show = _mapper.Map<Show>(rawShow);
+
+            return show;
+        }
     }
 }

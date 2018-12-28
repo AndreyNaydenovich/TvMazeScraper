@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using TvMazeScraper.Contracts.Entities;
 
-namespace TvMazeScraper.Presentation.Domain
+namespace TvMazeScraper.Presentation.Domain.Comparers
 {
-    public class CastComparer : Comparer<ICast>, IComparer<ICast>
+    public class CastComparer : Comparer<ICast>
     {
         public override int Compare(ICast x, ICast y)
         {
@@ -11,18 +11,16 @@ namespace TvMazeScraper.Presentation.Domain
             {
                 return 0;
             }
-            else if (x?.Birthday == null)
+            if (x?.Birthday == null)
             {
                 return 1;
             }
-            else if (y?.Birthday == null)
+            if (y?.Birthday == null)
             {
                 return -1;
             }
-            else
-            {
-                return y.Birthday.Value.CompareTo(x.Birthday.Value);
-            }
+
+            return y.Birthday.Value.CompareTo(x.Birthday.Value);
         }
     }
 }

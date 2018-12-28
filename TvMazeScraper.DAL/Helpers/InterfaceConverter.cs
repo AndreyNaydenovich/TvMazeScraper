@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Converters;
-using System;
+﻿using System;
+using Newtonsoft.Json.Converters;
 
 namespace TvMazeScraper.DAL.Helpers
 {

@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using TvMazeScraper.Contracts;
 using TvMazeScraper.Contracts.Entities;
+using TvMazeScraper.Contracts.Stores;
 
-namespace TvMazeScraper.Presentation.Domain
+namespace TvMazeScraper.Presentation.Domain.Services
 {
-    public class SortedShowStore : ISortedShowStore
+    public class ShowService : IShowService
     {
         private readonly IShowStore _showStore;
         private readonly IComparer<ICast> _castComparer;
 
-        public SortedShowStore(IShowStore showStore, IComparer<ICast> castComparer)
+        public ShowService(IShowStore showStore, IComparer<ICast> castComparer)
         {
             _showStore = showStore;
             _castComparer = castComparer;
@@ -19,6 +19,12 @@ namespace TvMazeScraper.Presentation.Domain
         public async Task<IShow> GetAsync(int id)
         {
             var show = await _showStore.GetAsync(id);
+
+            if (show == null)
+            {
+                return null;
+            }
+
             show.Cast.Sort(_castComparer);
             return show;
         }

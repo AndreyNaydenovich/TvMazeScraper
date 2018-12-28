@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
 
-namespace TvMazeScraper.Integration.Domain
+namespace TvMazeScraper.Integration.Domain.Helpers
 {
-    public class FailSafeDateConverter : DateTimeConverterBase
+    public class FailsafeDateConverter : DateTimeConverterBase
     {
         public override bool CanWrite => false;
 
@@ -17,10 +17,14 @@ namespace TvMazeScraper.Integration.Domain
         {
             var dateString = reader.Value as string;
             if (string.IsNullOrEmpty(dateString))
+            {
                 return default(DateTime?);
+            }
 
             if (!DateTime.TryParse(dateString, out var date))
+            {
                 return default(DateTime?);
+            }
 
             return date;
         }

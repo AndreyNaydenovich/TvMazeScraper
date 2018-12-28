@@ -1,55 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TvMazeScraper.Contracts.Entities;
+using TvMazeScraper.Integration.Domain.Configurations;
+using TvMazeScraper.Integration.Domain.Exceptions;
 
-namespace TvMazeScraper.Integration.Domain
+namespace TvMazeScraper.Integration.Domain.Api
 {
-    public interface IFailoverTvMazeApiClient : IDisposable
-    {
-        Task<Dictionary<int, int>> GetUpdateListAsync(CancellationToken cancellationToken);
-        Task<IShow> GetShowInfoAsync(int id, CancellationToken cancellationToken);
-    }
-
     public class FailoverTvMazeApiClient : IFailoverTvMazeApiClient
     {
         private readonly ITvMazeApiClient _apiClient;
-        private readonly int _requestDelay;
+        private readonly IApiClientConfiguration _config;
 
-        public FailoverTvMazeApiClient(ITvMazeApiClient apiClient, IFailoverTvMazeApiClientConfiguration config)
+        public FailoverTvMazeApiClient(ITvMazeApiClient apiClient, IApiClientConfiguration config)
         {
             _apiClient = apiClient;
-            _requestDelay = config.DelayInMilliseconds;
+            _config = config;
         }
 
         public async Task<Dictionary<int, int>> GetUpdateListAsync(CancellationToken cancellationToken)
         {
-            var errorQty = 0;
+            var retryCount = 0;
 
             while (true)
             {
-                if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
-                {
-                    return null;
-                }
-
                 var result = await _apiClient.GetUpdateListAsync(cancellationToken).ConfigureAwait(false);
 
                 if (result.IsRateLimitExceed)
                 {
-                    await Task.Delay(++errorQty * _requestDelay, cancellationToken);
+                    retryCount = await WaitForRetryAsync(retryCount, cancellationToken);
                 }
                 else
                 {
-                    return result.data;
+                    return result.Data;
                 }
             }
         }
 
         public async Task<IShow> GetShowInfoAsync(int id, CancellationToken cancellationToken)
         {
-            var errorQty = 0;
+            var retryCount = 0;
 
             while (true)
             {
@@ -57,18 +47,24 @@ namespace TvMazeScraper.Integration.Domain
 
                 if (result.IsRateLimitExceed)
                 {
-                    await Task.Delay(++errorQty * _requestDelay, cancellationToken);
+                    retryCount = await WaitForRetryAsync(retryCount, cancellationToken);
                 }
                 else
                 {
-                    return result.data;
+                    return result.Data;
                 }
             }
         }
 
-        public void Dispose()
+        public async Task<int> WaitForRetryAsync(int retryCount, CancellationToken cancellationToken)
         {
-            _apiClient.Dispose();
+            if (retryCount > _config.MaxRetryCount)
+            {
+                throw new RateLimitExceedException();
+            }
+
+            await Task.Delay(++retryCount * _config.DelayInMilliseconds, cancellationToken);
+            return retryCount;
         }
     }
 }

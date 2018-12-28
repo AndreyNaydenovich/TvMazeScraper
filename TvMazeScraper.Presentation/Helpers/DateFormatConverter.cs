@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Converters;
 
-namespace TvMazeScraper.Presentation
+namespace TvMazeScraper.Presentation.Helpers
 {
     public class DateFormatConverter : IsoDateTimeConverter
     {

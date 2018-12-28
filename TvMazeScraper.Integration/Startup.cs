@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
+using TvMazeScraper.Contracts.Stores;
+using TvMazeScraper.Integration.Configurations;
 using TvMazeScraper.Integration.Domain;
+using TvMazeScraper.Integration.Domain.Api;
 using TvMazeScraper.Integration.Domain.Configurations;
 using TvMazeScraper.Integration.Extensions;
-using TvMazeScraper.Integration.Jobs;
+using TvMazeScraper.Integration.Services;
 
 namespace TvMazeScraper.Integration
 {
@@ -23,34 +24,29 @@ namespace TvMazeScraper.Integration
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IFailoverTvMazeApiClientConfiguration>(Configuration.GetSection("ApiClientConfiguration").Get<ApiClientConfiguration>());
-            services.AddSingleton<DAL.IDatabaseFactoryConfiguration>(Configuration.GetSection("DatabaseFactoryConfiguration").Get<DatabaseFactoryConfiguration>());
+            services.AddSingleton<ISynchronizationConfiguration>(Configuration.GetSection("SynchronizationConfiguration").Get<SynchronizationConfiguration>());
+            services.AddSingleton<IApiClientConfiguration>(Configuration.GetSection("ApiClientConfiguration").Get<ApiClientConfiguration>());
+            services.AddSingleton<DAL.Configurations.IDatabaseFactoryConfiguration>(Configuration.GetSection("DatabaseFactoryConfiguration")
+                .Get<DAL.Configurations.DatabaseFactoryConfiguration>());
 
             services.AddLogging();
             services.AddApplicationInsightsTelemetry();
 
             services.AddAutoMapper();
-
+            services.AddHttpClient<ITvMazeApiClient, TvMazeApiClient>();
             services.AddSingleton<DAL.IDatabaseFactory, DAL.DatabaseFactory>();
-            services.AddSingleton<DAL.ISerializer, DAL.Helpers.Serializer>();
-            services.AddTransient<Contracts.IKeyValueStore, DAL.KeyValueStore>();
-            services.AddTransient<Contracts.IShowStore, DAL.ShowStore>();
-            services.AddTransient<ITvMazeApiClient, TvMazeApiClient>();
+            services.AddSingleton<DAL.Helpers.ISerializer, DAL.Helpers.Serializer>();
+            services.AddTransient<IKeyValueStore, DAL.Stores.KeyValueStore>();
+            services.AddTransient<IShowStore, DAL.Stores.ShowStore>();
             services.AddTransient<IFailoverTvMazeApiClient, FailoverTvMazeApiClient>();
-            services.AddTransient<ShowSynchronization>();
+            services.AddTransient<ISynchronizationService, SynchronizationService>();
 
-            services.AddHostedService<ShowSynchronizationHostedService>();
+            services.AddHostedService<SynchronizationHostedService>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env,
-            ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             loggerFactory.AddApplicationInsights(serviceProvider);
-
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
         }
     }
 }
